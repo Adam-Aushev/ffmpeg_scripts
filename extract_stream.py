@@ -94,9 +94,9 @@ def extract_streams(link):
         #     input(name)
         #     name = f'{link[link.rfind("/")+1:link[:link.rfind('BDMV')-1].rfind(".")].replace(".", "_").replace("(", "_").replace(")", "_")}_stream{infoo["index"]}_{lang_tag}_{infoo["channel_layout"].replace(".","")}_{frame_rate}fps_{infoo["codec_name"]}_TORRENT.wav'
         if '.VOB' in link:
-            name = link.split('\\')[1]
+            name = link.split('\\')[2]
         elif 'BDMV' in link:
-            name = link[:link.rfind('BDMV')].strip('\\')
+            name = link[:link.rfind('BDMV')].strip('\\').strip('/').split('\\')[-1].split('/')[-1]
         else:
             name = link[link.rfind('\\'):].strip('\\')
             name = name[name.rfind("/")+1:name.rfind(".")]
@@ -133,7 +133,7 @@ if __name__ == "__main__":
                 if code_list:
                     for code in code_list:
                         print(bcolors.HEADER, code, bcolors.ENDC)
-                        # os.system(code)
+                        os.system(code)
 
             elif 'VIDEO_TS' in tor_link:
                 for dvd in dvd_collect(tor_link):
@@ -141,7 +141,7 @@ if __name__ == "__main__":
                     if code_list:
                         for code in code_list:
                             print(bcolors.WARNING, code, bcolors.ENDC)
-                            # os.system(code)
+                            os.system(code)
                 
             else:
                 for file in os.listdir(tor_link):
