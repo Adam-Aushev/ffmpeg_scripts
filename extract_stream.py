@@ -102,7 +102,7 @@ def extract_streams(link):
             name = name[name.rfind("/")+1:name.rfind(".")]
         name = name.replace(".", "_").replace("(", "_").replace(")", "_").replace(" ", "_")
         name += f'_stream{infoo["index"]}_{lang_tag}_{infoo["channel_layout"].replace(".","")}_{frame_rate}fps_{infoo["codec_name"]}_TORRENT.wav'
-        if 'truehd' in infoo["codec_name"]:
+        if 'truehd' in infoo["codec_name"] or 'pcm_bluray' in infoo["codec_name"]:
             codec = 'pcm_s24le'
         else:
             codec = 'copy'
