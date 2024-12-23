@@ -107,7 +107,7 @@ def extract_streams(link):
         else:
             codec = 'copy'
         # print('name', name)
-        if name not in os.listdir(flsh_folder):
+        if name not in os.listdir(flsh_folder) and int(infoo["channels"]) > 2:
             code_list.append( f'ffmpeg -loglevel warning -hide_banner -stats -i "{link}" -rf64 auto -codec {codec} -map 0:{infoo["index"]} -y "{flsh_folder}{name}"')
             # print(code_list)
         # input(name)
@@ -151,3 +151,166 @@ if __name__ == "__main__":
                             for code in code_list:
                                 print(bcolors.OKBLUE, code, bcolors.ENDC)
                                 os.system(code)
+
+
+
+'''
+[STREAM]
+    index=0
+    codec_name=h264
+    codec_long_name=H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10
+    profile=High
+    codec_type=video
+    codec_tag_string=avc1
+    codec_tag=0x31637661
+    width=1920
+    height=1080
+    coded_width=1920
+    coded_height=1080
+    closed_captions=0
+    film_grain=0
+    has_b_frames=1
+    sample_aspect_ratio=1:1
+    display_aspect_ratio=16:9
+    pix_fmt=yuvj420p
+    level=42
+    color_range=pc
+    color_space=unknown
+    color_transfer=unknown
+    color_primaries=unknown
+    chroma_location=left
+    field_order=progressive
+    refs=1
+    is_avc=true
+    nal_length_size=4
+    id=0x1
+    r_frame_rate=50/1
+    avg_frame_rate=50/1
+    time_base=1/50000
+    start_pts=0
+    start_time=0.000000
+    duration_ts=384000
+    duration=7.680000
+    bit_rate=51086847
+    max_bit_rate=N/A
+    bits_per_raw_sample=8
+    nb_frames=384
+    nb_read_frames=N/A
+    nb_read_packets=N/A
+    extradata_size=122
+    DISPOSITION:default=1
+    DISPOSITION:dub=0
+    DISPOSITION:original=0
+    DISPOSITION:comment=0
+    DISPOSITION:lyrics=0
+    DISPOSITION:karaoke=0
+    DISPOSITION:forced=0
+    DISPOSITION:hearing_impaired=0
+    DISPOSITION:visual_impaired=0
+    DISPOSITION:clean_effects=0
+    DISPOSITION:attached_pic=0
+    DISPOSITION:timed_thumbnails=0
+    DISPOSITION:captions=0
+    DISPOSITION:descriptions=0
+    DISPOSITION:metadata=0
+    DISPOSITION:dependent=0
+    DISPOSITION:still_image=0
+    TAG:creation_time=2024-10-20T11:16:04.000000Z
+    TAG:language=und
+    TAG:handler_name=Video Media Handler
+    TAG:vendor_id=[0][0][0][0]
+    TAG:encoder=AVC Coding
+[/STREAM]
+[STREAM]
+    index=1
+    codec_name=pcm_s16be
+    codec_long_name=PCM signed 16-bit big-endian
+    profile=unknown
+    codec_type=audio
+    codec_tag_string=twos
+    codec_tag=0x736f7774
+    sample_fmt=s16
+    sample_rate=48000
+    channels=2
+    channel_layout=unknown
+    bits_per_sample=16
+    id=0x2
+    r_frame_rate=0/0
+    avg_frame_rate=0/0
+    time_base=1/48000
+    start_pts=0
+    start_time=0.000000
+    duration_ts=368640
+    duration=7.680000
+    bit_rate=1536000
+    max_bit_rate=N/A
+    bits_per_raw_sample=N/A
+    nb_frames=368640
+    nb_read_frames=N/A
+    nb_read_packets=N/A
+    DISPOSITION:default=1
+    DISPOSITION:dub=0
+    DISPOSITION:original=0
+    DISPOSITION:comment=0
+    DISPOSITION:lyrics=0
+    DISPOSITION:karaoke=0
+    DISPOSITION:forced=0
+    DISPOSITION:hearing_impaired=0
+    DISPOSITION:visual_impaired=0
+    DISPOSITION:clean_effects=0
+    DISPOSITION:attached_pic=0
+    DISPOSITION:timed_thumbnails=0
+    DISPOSITION:captions=0
+    DISPOSITION:descriptions=0
+    DISPOSITION:metadata=0
+    DISPOSITION:dependent=0
+    DISPOSITION:still_image=0
+    TAG:creation_time=2024-10-20T11:16:04.000000Z
+    TAG:language=und
+    TAG:handler_name=Sound Media Handler
+    TAG:vendor_id=[0][0][0][0]
+[/STREAM]
+[STREAM]
+    index=2
+    codec_name=unknown
+    codec_long_name=unknown
+    profile=unknown
+    codec_type=data
+    codec_tag_string=rtmd
+    codec_tag=0x646d7472
+    id=0x3
+    r_frame_rate=0/0
+    avg_frame_rate=0/0
+    time_base=1/50000
+    start_pts=0
+    start_time=0.000000
+    duration_ts=384000
+    duration=7.680000
+    bit_rate=409600
+    max_bit_rate=N/A
+    bits_per_raw_sample=N/A
+    nb_frames=384
+    nb_read_frames=N/A
+    nb_read_packets=N/A
+    DISPOSITION:default=1
+    DISPOSITION:dub=0
+    DISPOSITION:original=0
+    DISPOSITION:comment=0
+    DISPOSITION:lyrics=0
+    DISPOSITION:karaoke=0
+    DISPOSITION:forced=0
+    DISPOSITION:hearing_impaired=0
+    DISPOSITION:visual_impaired=0
+    DISPOSITION:clean_effects=0
+    DISPOSITION:attached_pic=0
+    DISPOSITION:timed_thumbnails=0
+    DISPOSITION:captions=0
+    DISPOSITION:descriptions=0
+    DISPOSITION:metadata=0
+    DISPOSITION:dependent=0
+    DISPOSITION:still_image=0
+    TAG:creation_time=2024-10-20T11:16:04.000000Z
+    TAG:language=und
+    TAG:handler_name=Timed Metadata Media Handler
+    TAG:timecode=09:22:26:48
+[/STREAM]'''
