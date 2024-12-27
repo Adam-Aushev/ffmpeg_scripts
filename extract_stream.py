@@ -94,7 +94,7 @@ def extract_streams(link):
         #     input(name)
         #     name = f'{link[link.rfind("/")+1:link[:link.rfind('BDMV')-1].rfind(".")].replace(".", "_").replace("(", "_").replace(")", "_")}_stream{infoo["index"]}_{lang_tag}_{infoo["channel_layout"].replace(".","")}_{frame_rate}fps_{infoo["codec_name"]}_TORRENT.wav'
         if '.VOB' in link:
-            name = link.split('\\')[2]
+            name = f"{''.join(filter(str.isalnum, link.split('\\')[2]))}_{(stream_info[0]['duration'])}"
         elif 'BDMV' in link:
             name = link[:link.rfind('BDMV')].strip('\\').strip('/').split('\\')[-1].split('/')[-1]
         else:
