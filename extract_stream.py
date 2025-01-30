@@ -65,7 +65,10 @@ def extract_streams(link):
     info_dict = {}
     stream_info = []
     code_list = []
-    flsh_folder = f'{detect_flash()}:\\\\torrent/'
+    if detect_flash():
+        flsh_folder = f'{detect_flash()}:\\\\torrent/'
+    else:
+        flsh_folder = 'C:\\Yandex_Disc_Syn\\YandexDisk\\work files\\streams\\'
     # print(link)
     cmd = (f'ffprobe -hide_banner -v error -i "{link}" -show_streams ')
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True, encoding='utf-8')
@@ -114,9 +117,11 @@ def extract_streams(link):
     return code_list
 
 if __name__ == "__main__":
+    yansyn = ''
     if not detect_flash():
         print('We need flash disc!')
-    else:    
+        yansyn = input('copy to yandex disc syn? enter y: ')
+    if detect_flash() or 'y' in yansyn:    
         os.system('nano torrent_folder.txt')
         with open ('torrent_folder.txt', 'r', encoding='utf-8') as tor_folder:
             tor_folder = tor_folder.readlines()
