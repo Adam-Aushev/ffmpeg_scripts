@@ -156,7 +156,7 @@ if __name__ == "__main__":
                         print(bcolors.HEADER, code, bcolors.ENDC)
                         os.system(code)
 
-            elif '.VOB' in ''.join(os.listdir(tor_link)):
+            elif '.vob' in ''.join(os.listdir(tor_link)):
                 # input(os.listdir(tor_link))
                 for dvd in dvd_collect(tor_link):
                     code_list = extract_streams(dvd)
