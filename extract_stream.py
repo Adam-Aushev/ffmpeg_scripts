@@ -61,10 +61,12 @@ def clean_name(link, info, fps):
     lang_tag = info["TAG:language"] if "TAG:language" in info else ""
     del_char = '.() /\\'
     new_name = ''
-    if '.VOB' in link and 'VIDEO_TS' in link:
-        name = link.split('\\')[-3].strip('/').strip('\\')
-    elif '.VOB' in link:
-        name = link.split('\\')[-2]
+    if '.vob' in link.lower():
+        file_name = os.path.splitext(os.path.split(link.split('|')[0])[-1])[0]
+        if 'VIDEO_TS' in link:
+            name = link.split('\\')[-3].strip('/').strip('\\')+file_name
+        else:
+            name = link.split('\\')[-2]+file_name
     elif 'BDMV' in link:
         name = link[:link.rfind('BDMV')].strip('\\').strip('/').split('\\')[-1].split('/')[-1]
     else:
@@ -158,7 +160,6 @@ if __name__ == "__main__":
                 # input(os.listdir(tor_link))
                 for dvd in dvd_collect(tor_link):
                     code_list = extract_streams(dvd)
-                    input(code_list)
                     if code_list:
                         for code in code_list:
                             print(bcolors.WARNING, code, bcolors.ENDC)
