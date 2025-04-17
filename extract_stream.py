@@ -142,37 +142,38 @@ if __name__ == "__main__":
         with open ('torrent_folder.txt', 'r', encoding='utf-8') as tor_folder:
             tor_folder = tor_folder.readlines()
         for tor_link in tor_folder:
-            tor_link = tor_link.strip() + '/'
-            if 'BDMV' in tor_link:
-                bd_link = ''
-                bd_size = 0
-                for bd_file in os.listdir(tor_link):
-                    if os.path.getsize(tor_link+bd_file) > bd_size:
-                        bd_link = bd_file
-                        bd_size = os.path.getsize(tor_link+bd_file)
-                code_list = extract_streams(f'{tor_link}{bd_link.strip()}')
-                if code_list:
-                    for code in code_list:
-                        print(bcolors.HEADER, code, bcolors.ENDC)
-                        os.system(code)
-
-            elif '.vob' in ''.join(os.listdir(tor_link)):
-                # input(os.listdir(tor_link))
-                for dvd in dvd_collect(tor_link):
-                    code_list = extract_streams(dvd)
+            if os.path.isdir(tor_link):
+                tor_link = tor_link.strip() + '/'
+                if 'BDMV' in tor_link:
+                    bd_link = ''
+                    bd_size = 0
+                    for bd_file in os.listdir(tor_link):
+                        if os.path.getsize(tor_link+bd_file) > bd_size:
+                            bd_link = bd_file
+                            bd_size = os.path.getsize(tor_link+bd_file)
+                    code_list = extract_streams(f'{tor_link}{bd_link.strip()}')
                     if code_list:
                         for code in code_list:
-                            print(bcolors.WARNING, code, bcolors.ENDC)
+                            print(bcolors.HEADER, code, bcolors.ENDC)
                             os.system(code)
-                
-            else:
-                for file in os.listdir(tor_link):
-                    if format_detect(file.strip()):
-                        code_list = extract_streams(f'{tor_link}{file.strip()}')
+
+                elif '.vob' in ''.join(os.listdir(tor_link)):
+                    # input(os.listdir(tor_link))
+                    for dvd in dvd_collect(tor_link):
+                        code_list = extract_streams(dvd)
                         if code_list:
                             for code in code_list:
-                                print(bcolors.OKBLUE, code, bcolors.ENDC)
+                                print(bcolors.WARNING, code, bcolors.ENDC)
                                 os.system(code)
+                    
+                else:
+                    for file in os.listdir(tor_link):
+                        if format_detect(file.strip()):
+                            code_list = extract_streams(f'{tor_link}{file.strip()}')
+                            if code_list:
+                                for code in code_list:
+                                    print(bcolors.OKBLUE, code, bcolors.ENDC)
+                                    os.system(code)
 
 
 
