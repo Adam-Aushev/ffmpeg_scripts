@@ -59,7 +59,7 @@ def dvd_collect(link):
 
 def clean_name(link, info, fps):
     lang_tag = info["TAG:language"] if "TAG:language" in info else ""
-    del_char = '.() /\\'
+    del_char = '.() /\\|:'
     new_name = ''
     if '.vob' in link.lower():
         file_name = os.path.splitext(os.path.split(link.split('|')[0])[-1])[0]
@@ -78,7 +78,6 @@ def clean_name(link, info, fps):
         else:
             new_name += char
     new_name += f'_stream{info["index"]}_{lang_tag}_{info["channel_layout"].replace(".","")}_{fps}fps_{info["codec_name"]}_TORRENT.wav'
-    input(f'name -------------{new_name}')
     return new_name
     
 
@@ -142,8 +141,8 @@ if __name__ == "__main__":
         with open ('torrent_folder.txt', 'r', encoding='utf-8') as tor_folder:
             tor_folder = tor_folder.readlines()
         for tor_link in tor_folder:
+            tor_link = tor_link.strip() + '/'
             if os.path.isdir(tor_link):
-                tor_link = tor_link.strip() + '/'
                 if 'BDMV' in tor_link:
                     bd_link = ''
                     bd_size = 0
@@ -157,7 +156,7 @@ if __name__ == "__main__":
                             print(bcolors.HEADER, code, bcolors.ENDC)
                             os.system(code)
 
-                elif '.vob' in ''.join(os.listdir(tor_link)):
+                elif '.vob' in ''.join(os.listdir(tor_link)).lower():
                     # input(os.listdir(tor_link))
                     for dvd in dvd_collect(tor_link):
                         code_list = extract_streams(dvd)
