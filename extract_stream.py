@@ -57,7 +57,29 @@ def dvd_collect(link):
                 finput.append(f"concat:{'|'.join(name_list)}")
     return(finput)
 
- 
+def clean_name(link, info, fps):
+    lang_tag = info["TAG:language"] if "TAG:language" in info else ""
+    del_char = '.() /\\|:'
+    new_name = ''
+    if '.vob' in link.lower():
+        file_name = os.path.splitext(os.path.split(link.split('|')[0])[-1])[0]
+        if 'VIDEO_TS' in link:
+            name = link.split('\\')[-3].strip('/').strip('\\')+file_name
+        else:
+            name = link.split('\\')[-2]+file_name
+    elif 'BDMV' in link:
+        name = link[:link.rfind('BDMV')].strip('\\').strip('/').split('\\')[-1].split('/')[-1]
+    else:
+        name = link[link.rfind('\\'):].strip('\\')
+        name = name[name.rfind("/")+1:name.rfind(".")]
+    for char in name:
+        if char in del_char:
+            new_name += '_'
+        else:
+            new_name += char
+    new_name += f'_stream{info["index"]}_{lang_tag}_{info["channel_layout"].replace(".","")}_{fps}fps_{info["codec_name"]}_TORRENT.wav'
+    return new_name
+    
 
 
 def extract_streams(link):
@@ -65,7 +87,12 @@ def extract_streams(link):
     info_dict = {}
     stream_info = []
     code_list = []
-    flsh_folder = f'{detect_flash()}:\\\\torrent/'
+    yansynpath = 'C:\\YandexDisk\\work files\\streams'
+    if detect_flash():
+        flash_folder = f'{detect_flash()}:\\\\torrent'
+    else:
+        if os.path.exists(yansynpath):
+            flash_folder = yansynpath
     # print(link)
     cmd = (f'ffprobe -hide_banner -v error -i "{link}" -show_streams ')
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True, encoding='utf-8')
@@ -88,69 +115,64 @@ def extract_streams(link):
             if info_dict:
                 stream_info.append(info_dict.copy())
     for infoo in stream_info:
-        lang_tag = infoo["TAG:language"] if "TAG:language" in infoo else ""
         # if 'BDMV' in link:
         #     name = link[:link.rfind('BDMV')-1]
         #     input(name)
         #     name = f'{link[link.rfind("/")+1:link[:link.rfind('BDMV')-1].rfind(".")].replace(".", "_").replace("(", "_").replace(")", "_")}_stream{infoo["index"]}_{lang_tag}_{infoo["channel_layout"].replace(".","")}_{frame_rate}fps_{infoo["codec_name"]}_TORRENT.wav'
-        if '.VOB' in link:
-            name = link.split('\\')[2]
-        elif 'BDMV' in link:
-            name = link[:link.rfind('BDMV')].strip('\\').strip('/').split('\\')[-1].split('/')[-1]
-        else:
-            name = link[link.rfind('\\'):].strip('\\')
-            name = name[name.rfind("/")+1:name.rfind(".")]
-        name = name.replace(".", "_").replace("(", "_").replace(")", "_").replace(" ", "_")
-        name += f'_stream{infoo["index"]}_{lang_tag}_{infoo["channel_layout"].replace(".","")}_{frame_rate}fps_{infoo["codec_name"]}_TORRENT.wav'
+        name = clean_name(link, info = infoo, fps = frame_rate)
         if 'truehd' in infoo["codec_name"] or 'pcm_bluray' in infoo["codec_name"]:
             codec = 'pcm_s24le'
         else:
             codec = 'copy'
         # print('name', name)
-        if name not in os.listdir(flsh_folder) and int(infoo["channels"]) > 2:
-            code_list.append( f'ffmpeg -loglevel warning -hide_banner -stats -i "{link}" -rf64 auto -codec {codec} -map 0:{infoo["index"]} -y "{flsh_folder}{name}"')
+        if name not in os.listdir(flash_folder) and int(infoo["channels"]) > 2:
+            code_list.append( f'ffmpeg -loglevel warning -hide_banner -stats -i "{link}" -rf64 auto -codec {codec} -map 0:{infoo["index"]} -y "{os.path.join(flash_folder,name)}"')
             # print(code_list)
         # input(name)
     return code_list
 
 if __name__ == "__main__":
+    yansyn = ''
     if not detect_flash():
         print('We need flash disc!')
-    else:    
+        yansyn = input('copy to yandex disc syn? enter y: ')
+    if detect_flash() or 'y' in yansyn:    
         os.system('nano torrent_folder.txt')
         with open ('torrent_folder.txt', 'r', encoding='utf-8') as tor_folder:
             tor_folder = tor_folder.readlines()
         for tor_link in tor_folder:
             tor_link = tor_link.strip() + '/'
-            if 'BDMV' in tor_link:
-                bd_link = ''
-                bd_size = 0
-                for bd_file in os.listdir(tor_link):
-                    if os.path.getsize(tor_link+bd_file) > bd_size:
-                        bd_link = bd_file
-                        bd_size = os.path.getsize(tor_link+bd_file)
-                code_list = extract_streams(f'{tor_link}{bd_link.strip()}')
-                if code_list:
-                    for code in code_list:
-                        print(bcolors.HEADER, code, bcolors.ENDC)
-                        os.system(code)
-
-            elif 'VIDEO_TS' in tor_link:
-                for dvd in dvd_collect(tor_link):
-                    code_list = extract_streams(dvd)
+            if os.path.isdir(tor_link):
+                if 'BDMV' in tor_link:
+                    bd_link = ''
+                    bd_size = 0
+                    for bd_file in os.listdir(tor_link):
+                        if os.path.getsize(tor_link+bd_file) > bd_size:
+                            bd_link = bd_file
+                            bd_size = os.path.getsize(tor_link+bd_file)
+                    code_list = extract_streams(f'{tor_link}{bd_link.strip()}')
                     if code_list:
                         for code in code_list:
-                            print(bcolors.WARNING, code, bcolors.ENDC)
+                            print(bcolors.HEADER, code, bcolors.ENDC)
                             os.system(code)
-                
-            else:
-                for file in os.listdir(tor_link):
-                    if format_detect(file.strip()):
-                        code_list = extract_streams(f'{tor_link}{file.strip()}')
+
+                elif '.vob' in ''.join(os.listdir(tor_link)).lower():
+                    # input(os.listdir(tor_link))
+                    for dvd in dvd_collect(tor_link):
+                        code_list = extract_streams(dvd)
                         if code_list:
                             for code in code_list:
-                                print(bcolors.OKBLUE, code, bcolors.ENDC)
+                                print(bcolors.WARNING, code, bcolors.ENDC)
                                 os.system(code)
+                    
+                else:
+                    for file in os.listdir(tor_link):
+                        if format_detect(file.strip()):
+                            code_list = extract_streams(f'{tor_link}{file.strip()}')
+                            if code_list:
+                                for code in code_list:
+                                    print(bcolors.OKBLUE, code, bcolors.ENDC)
+                                    os.system(code)
 
 
 
