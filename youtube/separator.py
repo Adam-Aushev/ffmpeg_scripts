@@ -2,8 +2,8 @@ from audio_separator.separator import Separator
 import os
 import time
 music_list = []
-path = 'F:\Work E\музыка\музыка 2'
-out_path = 'F:\Work E\музыка\Вокал Инструментал'
+path = r'E:\Для Свадеб\музыка\СРЕДНИЕ'
+out_path = r'E:\Для Свадеб\музыка\Вокал Инструментал'
 out_files = os.listdir(out_path)
 for file in os.listdir(path):
     if '.mp3' in file and os.path.splitext(file)[0] not in ''.join(out_files):
