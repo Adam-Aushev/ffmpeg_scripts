@@ -77,27 +77,20 @@ def create_sub(link, source_name, each_num, source_path):
     return sub_path
 
 
-def get_compare():
-    os.system('nano concate_links.txt')
-    with open('concate_links.txt', 'r', encoding='utf-8') as link_file:
-        link = link_file.readlines()[0].strip()
-    exp_folder = get_export_folder(link)
-    source_files = os.listdir(link)
-    exp_files = os.listdir(exp_folder)
-    for each in exp_files:
-        if get_format(each):
-            src_time = float(get_dur(pathjoin(link, f'{os.path.splitext(each)[0]}.mp4'), shape=False))
-            exp_time = float(get_dur(pathjoin(exp_folder, each), shape=False))
-            status = f'{bcolors.GREEN}OK{bcolors.END}' if  src_time-exp_time== 0 else f'{bcolors.RED}NOT{bcolors.END}'
-            print(each, src_time, exp_time, status)
+def get_compare(source_file, exp_file):
+    status = f'{bcolors.GREEN}Yes{bcolors.END}' 
+    src_dur = float(get_dur(source_file, shape=False))
+    exp_dur = float(get_dur(exp_file, shape=False))
+    if src_dur - exp_dur == 0:
+        return f'{bcolors.GREEN}{source_file}{src_dur} = {exp_dur} YES'
+    else:
+        return f'{bcolors.RED}{source_file}{src_dur} != {exp_dur} No'
 
 
 if '-h' in ''.join(sys.argv) or 'help' in ''.join(sys.argv):
     print('h265 - render with hevc')
     print('split - render split clips in folder')
     print('nolut - render without lut')
-elif 'compare' in ''.join(sys.argv):
-    get_compare()
 else:
     os.system('nano concate_links.txt')
     with open('concate_links.txt', 'r', encoding='utf-8') as link_file:
@@ -136,22 +129,21 @@ else:
 
                     end_name = pathjoin(exp_folder, end_file)
                     title_name = create_sub(end_name, pathjoin(link, each_file), list_files.index(each_file), exp_folder)
+                    print(get_compare(pathjoin(exp_folder, each_file), end_name))
                     if 'split' not in ''.join(sys.argv):
                         subtitle = f' -c:s mov_text -metadata:s:s:0 handler_name="Таймкоды"' 
                     if end_file not in os.listdir(exp_folder):
                         each_convert = f'ffmpeg -v error -stats  -i "{pathjoin(link, each_file)}" -i "{title_name}" -x265-params log-level=none -c:a aac -rf64 auto {vcodec} -preset ultrafast  -pix_fmt yuv420p -crf 25 {filters} {subtitle} -y "{end_name}"'
                         progress_bar(countdown, len(list_files), info=f'rendering - {each_file} {countdown} in {len(list_files)}')
-                        # os.system(each_convert)
+                        os.system(each_convert)
             if 'split' not in ''.join(sys.argv):
                 mylist = ''
                 list_files = os.listdir(exp_folder)
-                print(list_files)
                 for each_file in list_files:
                     if '.mp4' in each_file.lower() or '.mov'in each_file.lower():
                             mylist += f"file '{pathjoin(exp_folder,  each_file)}'\n"
                 with open (pathjoin(exp_folder,  'mylist.txt'), 'w', encoding='utf-8') as video_list_file:
                     video_list_file.write(mylist)
-                # os.system("(for %i in (*.mp4) do @echo file '%i') > mylist.txt ")
                 final_code = F'ffmpeg -f concat -safe 0 -i "{pathjoin(exp_folder, "mylist.txt")}" -codec copy -y -map 0:v -map 0:a -map 0:s "{pathjoin(os.path.split(exp_folder)[0], file_name)}.mp4"'
                 os.system(final_code)            
                 print(final_code)
