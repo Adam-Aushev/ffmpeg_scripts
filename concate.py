@@ -4,6 +4,19 @@ import shutil
 import sys
 import subprocess
 
+
+class bcolors:
+    MAGENTA = '\033[95m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    END = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+    
 def progress_bar( prog, volume, info=''):
     progress =int( prog*(100/volume))
     probar = f"[{progress*'#' + (99 - progress)*'.'}]"
@@ -22,17 +35,20 @@ def get_export_folder(link):
     if 'split' in ''.join(sys.argv):
         dir_name = link.replace('\\', '_').replace(' ', '_').replace(':', '').replace('/', '_')
         exp_folder = pathjoin(exp_folder, dir_name)
-        os.mkdir(exp_folder) if not os.path.isdir(exp_folder) else 1 
     else:
-        if 'Convert' in  os.listdir(exp_folder):
-            exp_folder = pathjoin(exp_folder, 'Convert')
-            shutil.rmtree(exp_folder) # del convert folder
+        exp_folder = pathjoin(exp_folder, 'Convert')
+        # if os.path.isdir(exp_folder):
+        #     shutil.rmtree(exp_folder) # del convert folder
+    os.mkdir(exp_folder) if not os.path.isdir(exp_folder) else 1 
     print(exp_folder)
     return exp_folder
 
 
-def get_dur(link):
-    code = f'ffprobe -v error -show_entries format=duration -sexagesimal -of default=noprint_wrappers=1:nokey=1 "{link}"'
+def get_dur(link, shape=True):
+    shapeform = ''
+    if shape == True:
+        shapeform = '-sexagesimal'
+    code = f'ffprobe -v error -show_entries format=duration {shapeform} -of default=noprint_wrappers=1:nokey=1 "{link}"'
     cmd = f'{code}'
     timecode = ''
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
@@ -52,17 +68,32 @@ def create_sub(link, source_name, each_num, source_path):
     return sub_path
 
 
+def get_compare():
+    os.system('nano concate_links.txt')
+    with open('concate_links.txt', 'r', encoding='utf-8') as link_file:
+        link = link_file.readlines()[0].strip()
+    exp_folder = get_export_folder(link)
+    source_files = os.listdir(link)
+    exp_files = os.listdir(exp_folder)
+    for each in source_files:
+        srctime = float(get_dur(pathjoin(link, each), shape=False))
+        exptime = float(get_dur(pathjoin(exp_folder, exp_files[exp_files.index(f'{os.path.splitext(each)[0]}.mp4')]), shape=False))
+        status = f'{bcolors.GREEN}OK{bcolors.END}' if  srctime-exptime == 0 else f'{bcolors.RED}NOT{bcolors.END}'
+        print(each, srctime, exptime, srctime-exptime, status)
+
+
 if '-h' in ''.join(sys.argv) or 'help' in ''.join(sys.argv):
     print('h265 - render with hevc')
     print('split - render split clips in folder')
     print('nolut - render without lut')
+elif 'compare' in ''.join(sys.argv):
+    get_compare()
 else:
     os.system('nano concate_links.txt')
     with open('concate_links.txt', 'r', encoding='utf-8') as link_file:
         for link in link_file:
             link = link.strip()
             exp_folder = get_export_folder(link)
-
             link_split = link.split("\\")
             for link_peace in reversed(link_split):
                 if 'сони' not in link_peace.lower()   and 'коп' not in link_peace.lower()   and 'кенон' not in link_peace.lower()  and 'видео' not in link_peace.lower()  :
@@ -100,15 +131,19 @@ else:
                     if end_file not in os.listdir(exp_folder):
                         each_convert = f'ffmpeg -v error -stats  -i "{pathjoin(link, each_file)}" -i "{title_name}" -x265-params log-level=none -c:a aac -rf64 auto {vcodec} -preset ultrafast  -pix_fmt yuv420p -crf 25 {filters} {subtitle} -y "{end_name}"'
                         progress_bar(countdown, len(list_files), info=f'rendering - {each_file} {countdown} in {len(list_files)}')
-                        os.system(each_convert)
-            # with open (pathjoin(exp_folder, 'Convert', 'mylist.txt'), 'w') as video_list_file:
-            #     list_files = os.listdir(pathjoin(exp_folder, 'Convert'))
-            #     # print(list_files)
-            #     for each_file in list_files:
-            #         if '.mp4' in each_file.lower() or '.mov'in each_file.lower():
-            #             video_list_file.write(f"file '{each_file}'\n")
-            # final_code = F'ffmpeg -f concat -safe 0 -i "{pathjoin(exp_folder, 'Convert', 'mylist.txt')}" -codec copy -y -map 0:v -map 0:a -map 0:s "{pathjoin(exp_folder, file_name)}.mp4"'
-            # os.system("(for %i in (*.mp4) do @echo file '%i') > mylist.txt ")
-            # os.system(final_code)            
+                        # os.system(each_convert)
+            if 'split' not in ''.join(sys.argv):
+                mylist = ''
+                list_files = os.listdir(exp_folder)
+                print(list_files)
+                for each_file in list_files:
+                    if '.mp4' in each_file.lower() or '.mov'in each_file.lower():
+                            mylist += f"file '{pathjoin(exp_folder,  each_file)}'\n"
+                with open (pathjoin(exp_folder,  'mylist.txt'), 'w', encoding='utf-8') as video_list_file:
+                    video_list_file.write(mylist)
+                # os.system("(for %i in (*.mp4) do @echo file '%i') > mylist.txt ")
+                final_code = F'ffmpeg -f concat -safe 0 -i "{pathjoin(exp_folder, "mylist.txt")}" -codec copy -y -map 0:v -map 0:a -map 0:s "{pathjoin(os.path.split(exp_folder)[0], file_name)}.mp4"'
+                os.system(final_code)            
+                print(final_code)
 
 
