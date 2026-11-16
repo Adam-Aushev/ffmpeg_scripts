@@ -16,6 +16,15 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
+def get_format(link):
+    vformats = ['.mp4', '.mov']
+    if os.path.splitext(link)[1] in vformats:
+        return True
+    else:
+        return False
+
+
     
 def progress_bar( prog, volume, info=''):
     progress =int( prog*(100/volume))
@@ -75,11 +84,12 @@ def get_compare():
     exp_folder = get_export_folder(link)
     source_files = os.listdir(link)
     exp_files = os.listdir(exp_folder)
-    for each in source_files:
-        srctime = float(get_dur(pathjoin(link, each), shape=False))
-        exptime = float(get_dur(pathjoin(exp_folder, exp_files[exp_files.index(f'{os.path.splitext(each)[0]}.mp4')]), shape=False))
-        status = f'{bcolors.GREEN}OK{bcolors.END}' if  srctime-exptime == 0 else f'{bcolors.RED}NOT{bcolors.END}'
-        print(each, srctime, exptime, srctime-exptime, status)
+    for each in exp_files:
+        if get_format(each):
+            src_time = float(get_dur(pathjoin(link, f'{os.path.splitext(each)[0]}.mp4'), shape=False))
+            exp_time = float(get_dur(pathjoin(exp_folder, each), shape=False))
+            status = f'{bcolors.GREEN}OK{bcolors.END}' if  src_time-exp_time== 0 else f'{bcolors.RED}NOT{bcolors.END}'
+            print(each, src_time, exp_time, status)
 
 
 if '-h' in ''.join(sys.argv) or 'help' in ''.join(sys.argv):
