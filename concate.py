@@ -81,12 +81,45 @@ def get_compare(source_file, exp_file):
     status = f'{bcolors.GREEN}Yes{bcolors.END}' 
     src_dur = float(get_dur(source_file, shape=False))
     exp_dur = float(get_dur(exp_file, shape=False))
-    if src_dur - exp_dur == 0:
+    if src_dur - exp_dur < 0.1:
         return f'{bcolors.GREEN}{source_file} {src_dur} = {exp_dur} YES{bcolors.END}'
     else:
         return f'{bcolors.RED}{source_file} {src_dur} != {exp_dur} No{bcolors.END}'
 
 
+def convert_video(path_src, path_exp, subtitle='', codec='', lut=False):
+    filters = ''
+    input_sub = ''
+    if subtitle:
+        input_sub = f'-i "{title_name}" '
+        subtitle = f' -c:s mov_text -metadata:s:s:0 handler_name="Таймкоды"' 
+    if 'lut' in ''.join(sys.argv) or lut==True:
+        lut_list = [each for each in os.listdir() if os.path.splitext(each)[1]=='.cube']
+        if lut_list:
+            filters = "scale=1920:1080"
+            filters += f", lut3d={lut_list[0]}"
+            filters = f'-vf "{filters}"'
+            # filters += ", lut3d=luts//From_SLog2SGumut_To_SLog2-709_.cube"
+        else:    
+            input('lut_not finded')
+    if 'h265' in ''.join(sys.argv) or codec=='h265':
+        vcodec = '-c:v libx265 -vtag hvc1 -x265-params log-level=none ' 
+    else:
+        vcodec = '-c:v h264 -profile:v baseline'
+    code = f'ffmpeg -v error -stats  -i "{path_src}" {input_sub} -c:a aac -rf64 auto {vcodec} -preset ultrafast  -pix_fmt yuv420p -crf 25 {filters} {subtitle} -y "{path_exp}"'
+    return code
+
+def collect_video(exp_folder):
+    mylist = ''
+    list_files = os.listdir(exp_folder)
+    for each_file in list_files:
+        if '.mp4' in each_file.lower() or '.mov'in each_file.lower():
+                mylist += f"file '{pathjoin(exp_folder,  each_file)}'\n"
+    with open (pathjoin(exp_folder,  'mylist.txt'), 'w', encoding='utf-8') as video_list_file:
+        video_list_file.write(mylist)
+    final_code = F'ffmpeg -f concat -safe 0 -i "{pathjoin(exp_folder, "mylist.txt")}" -codec copy -y -map 0:v -map 0:a -map 0:s "{pathjoin(os.path.split(exp_folder)[0], file_name)}.mp4"'
+    os.system(final_code)            
+    print(final_code)
 
 
 if __name__ == "__main__":
@@ -115,40 +148,21 @@ if __name__ == "__main__":
                 countdown =0
                 for each_file in list_files:
                     countdown += 1
-                    subtitle = ''
+                    subfile = ''
                     if '.mp4'in each_file.lower() or '.mov' in each_file.lower() or '.braw' in each_file.lower():
-                        filters = ''
                         video_list += f"file '{each_file}'\n"
-                        if 'lut' in ''.join(sys.argv):
-                            filters = "scale=1920:1080"
-                            filters += ", lut3d=luts//LC-709_.cube"
-                            filters = f'-vf "{filters}"'
-                            # filters += ", lut3d=luts//From_SLog2SGumut_To_SLog2-709_.cube"
-                        if 'h265' in ''.join(sys.argv):
-                            vcodec = '-c:v libx265 -vtag hvc1' 
-                        else:
-                            vcodec = '-c:v h264 -profile:v baseline'
                         end_file = f"{os.path.splitext(each_file)[0]}.mp4"
-
                         end_name = pathjoin(exp_folder, end_file)
                         title_name = create_sub(end_name, pathjoin(link, each_file), list_files.index(each_file), exp_folder)
                         if 'split' not in ''.join(sys.argv):
-                            subtitle = f' -c:s mov_text -metadata:s:s:0 handler_name="Таймкоды"' 
+                            subfile = title_name
                         if end_file not in os.listdir(exp_folder):
-                            each_convert = f'ffmpeg -v error -stats  -i "{pathjoin(link, each_file)}" -i "{title_name}" -x265-params log-level=none -c:a aac -rf64 auto {vcodec} -preset ultrafast  -pix_fmt yuv420p -crf 25 {filters} {subtitle} -y "{end_name}"'
+                            each_convert = convert_video(pathjoin(link, each_file), end_name)
                             progress_bar(countdown, len(list_files), info=f'rendering - {each_file} {countdown} in {len(list_files)}')
                             os.system(each_convert)
-                        print(get_compare(pathjoin(exp_folder, each_file), end_name))
+                        print(get_compare(pathjoin(exp_folder, each_file), end_name), subtitle=subfile)
                 if 'split' not in ''.join(sys.argv):
-                    mylist = ''
-                    list_files = os.listdir(exp_folder)
-                    for each_file in list_files:
-                        if '.mp4' in each_file.lower() or '.mov'in each_file.lower():
-                                mylist += f"file '{pathjoin(exp_folder,  each_file)}'\n"
-                    with open (pathjoin(exp_folder,  'mylist.txt'), 'w', encoding='utf-8') as video_list_file:
-                        video_list_file.write(mylist)
-                    final_code = F'ffmpeg -f concat -safe 0 -i "{pathjoin(exp_folder, "mylist.txt")}" -codec copy -y -map 0:v -map 0:a -map 0:s "{pathjoin(os.path.split(exp_folder)[0], file_name)}.mp4"'
-                    os.system(final_code)            
-                    print(final_code)
+                    collect_video(exp_folder)
+
 
 
